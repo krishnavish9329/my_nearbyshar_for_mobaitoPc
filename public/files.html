@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>📁 All Uploaded Files</title>
+  <style>
+    body { font-family:sans-serif; background:#0f172a; color:#fff; padding:20px; }
+    h1 { color:#22d3ee; text-align:center; }
+    table { width:100%; border-collapse:collapse; margin-top:20px; }
+    th,td { border-bottom:1px solid #444; padding:10px; text-align:left; }
+    a { color:#22d3ee; text-decoration:none; }
+    button { background:#e11d48; color:#fff; border:none; border-radius:6px; padding:5px 10px; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <h1>📁 Uploaded Files</h1>
+  <p><a href="/">⬅️ Back to Upload</a></p>
+  <table id="table">
+    <thead><tr><th>File</th><th>Size</th><th>Download</th><th>Delete</th></tr></thead>
+    <tbody></tbody>
+  </table>
+<script>
+async function loadFiles(){
+  const res = await fetch("/api/files");
+  const data = await res.json();
+  const tbody = document.querySelector("tbody");
+  tbody.innerHTML = "";
+  if (!data.files.length) {
+    tbody.innerHTML = "<tr><td colspan=4>No files yet</td></tr>";
+    return;
+  }
+  data.files.forEach(f=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${f.name}</td>
+      <td>${(f.size/1024/1024).toFixed(2)} MB</td>
+      <td><a href="${f.url}" download>⬇️ Download</a></td>
+      <td><button onclick="del('${encodeURIComponent(f.name)}')">🗑️</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+async function del(name){
+  if (!confirm("Delete this file?")) return;
+  await fetch("/api/files/"+name, { method:"DELETE" });
+  loadFiles();
+}
+loadFiles();
+</script>
+</body>
+</html>

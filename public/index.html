@@ -1,0 +1,197 @@
+<!-- <!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PFT Share - Upload</title>
+  <style>
+    body { font-family:sans-serif; background:#0f172a; color:#fff; text-align:center; padding:20px; }
+    h1 { color:#22d3ee; }
+    .box { border:2px dashed #22d3ee; border-radius:12px; padding:30px; margin:20px auto; width:90%; max-width:500px; }
+    button { padding:10px 20px; border:none; border-radius:6px; background:#22d3ee; color:#000; font-weight:bold; cursor:pointer; }
+    #msg { margin-top:15px; color:#22d3ee; }
+  </style>
+</head>
+<body>
+  <h1>📤 Send File to PC</h1>
+  <div class="box">
+    <input id="file" type="file" multiple>
+    <br><br>
+    <button onclick="upload()">Upload</button>
+    <p id="msg"></p>
+    <p><a href="/files" style="color:#22d3ee;">📁 View All Files</a></p>
+  </div>
+<script>
+async function upload() {
+  const files = document.getElementById("file").files;
+  if (!files.length) { alert("Choose files first!"); return; }
+  const fd = new FormData();
+  for (let f of files) fd.append("files", f);
+  const res = await fetch("/api/upload", { method:"POST", body:fd });
+  const data = await res.json();
+  document.getElementById("msg").textContent = data.ok ? "✅ Uploaded!" : "❌ Failed!";
+}
+</script>
+</body>
+</html> -->
+
+
+
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PFT Share - Upload</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #0f172a;
+      color: #fff;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      color: #22d3ee;
+      margin-bottom: 20px;
+      font-size: 26px;
+    }
+    .box {
+      border: 2px dashed #22d3ee;
+      border-radius: 12px;
+      padding: 30px;
+      margin: 20px auto;
+      width: 90%;
+      max-width: 500px;
+      background: rgba(17, 24, 39, 0.6);
+      box-shadow: 0 0 10px rgba(34, 211, 238, 0.2);
+    }
+    input[type="file"] {
+      background: #fff;
+      color: #000;
+      border-radius: 6px;
+      padding: 6px;
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      background: #22d3ee;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+      margin-top: 10px;
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    button:hover:not(:disabled) {
+      background: #1fb9d6;
+    }
+    #msg {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    .progress {
+      width: 100%;
+      background: #1e293b;
+      border-radius: 8px;
+      margin-top: 15px;
+      height: 8px;
+      overflow: hidden;
+      display: none;
+    }
+    .bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #22d3ee, #22c55e);
+      transition: width 0.2s ease;
+    }
+    a {
+      color: #22d3ee;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h1>📤 Send File to PC</h1>
+
+  <div class="box">
+    <input id="file" type="file" multiple>
+    <br>
+    <button id="uploadBtn" onclick="upload()">Upload</button>
+
+    <div class="progress" id="progress">
+      <div class="bar" id="bar"></div>
+    </div>
+
+    <p id="msg"></p>
+
+    <p><a href="/files">📁 View All Files</a></p>
+  </div>
+
+  <script>
+    async function upload() {
+      const files = document.getElementById("file").files;
+      const msg = document.getElementById("msg");
+      const btn = document.getElementById("uploadBtn");
+      const bar = document.getElementById("bar");
+      const progress = document.getElementById("progress");
+
+      if (!files.length) {
+        alert("Please choose a file first!");
+        return;
+      }
+
+      msg.textContent = "Uploading...";
+      msg.style.color = "#22d3ee";
+      progress.style.display = "block";
+      bar.style.width = "0%";
+      btn.disabled = true;
+
+      const fd = new FormData();
+      for (let f of files) fd.append("files", f);
+
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "/api/upload");
+
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          const percent = ((e.loaded / e.total) * 100).toFixed(1);
+          bar.style.width = percent + "%";
+        }
+      };
+
+      xhr.onload = () => {
+        btn.disabled = false;
+        progress.style.display = "none";
+
+        if (xhr.status >= 200 && xhr.status < 300) {
+          msg.textContent = "✅ Upload successful!";
+          msg.style.color = "#22c55e";
+          document.getElementById("file").value = "";
+          bar.style.width = "0%";
+        } else {
+          msg.textContent = "❌ Upload failed. Try again.";
+          msg.style.color = "#f87171";
+        }
+      };
+
+      xhr.onerror = () => {
+        btn.disabled = false;
+        progress.style.display = "none";
+        msg.textContent = "❌ Network error. Check your Wi-Fi.";
+        msg.style.color = "#f87171";
+      };
+
+      xhr.send(fd);
+    }
+  </script>
+</body>
+</html>
